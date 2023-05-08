@@ -1,0 +1,7 @@
+{
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "python.formatting.provider": "black",
+    "html.format.enable": false,
+    "prettier.useTabs": false,
+    "prettier.tabWidth": 4,
+}
