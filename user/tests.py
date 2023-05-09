@@ -59,8 +59,8 @@ class UserSignUpTestCase(APITestCase):
         cls.data_password[2][0]["password2"] = "123asd!!`|"
         cls.data_password[2][0]["password"] = "123asd!!`|"
 
-        cls.data_password[3][0]["password2"] = "123asd!!`|"
-        cls.data_password[3][0]["password"] = "123ssd!!`|"
+        cls.data_password[3][0]["password2"] = "123asd!!"
+        cls.data_password[3][0]["password"] = "123ssd!!"
 
         cls.data_password[4][0]["password2"] = "123asdaa"
         cls.data_password[4][0]["password"] = "123asdaa"
