@@ -38,7 +38,10 @@ class User(AbstractBaseUser):
     username(아이디), email(이메일,필수,unique), password, is_active, is_admin을 필드로 가진다.
     """
 
-    username = models.CharField(max_length=32, unique=True, primary_key=True)
+    username = models.CharField(
+        max_length=32,
+        unique=True,
+    )
     email = models.EmailField(
         verbose_name="email address",
         max_length=255,

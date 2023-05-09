@@ -1,8 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework import status, permissions
 from rest_framework.response import Response
-
-from user.serializers import UserSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from user.serializers import UserSerializer, MyTokenObtainSerializer
 
 
 # Create your views here.
@@ -25,3 +25,13 @@ class UserSignUpAndOutView(APIView):
             user_serialized.save()
             return Response(user_serialized.data, status=status.HTTP_201_CREATED)
         return Response(user_serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MyTokenObtaionVeiw(TokenObtainPairView):
+    """
+    토큰 발급시 사용되는 view입니다.
+    기본 제공되는 것을 상속하여 속성(serializer_class)을 다시 지정해 사용합니다.
+    기본제공되는 시리얼라이저를 상속해 커스텀한 MyTokenObtainSerializer을 사용합니다.
+    """
+
+    serializer_class = MyTokenObtainSerializer
