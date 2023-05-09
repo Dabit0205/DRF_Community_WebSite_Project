@@ -2,7 +2,8 @@ from rest_framework import serializers
 from .models import User
 import re
 
-PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$"
+PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,32}$"
+USERNAME_REGEX = "^[A-Za-z\d]+[A-Za-z\d_\-@]{5,31}$"
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -49,7 +50,13 @@ class UserSerializer(serializers.ModelSerializer):
         if not re.match(PASSWORD_REGEX, attrs.get("password")):
             raise serializers.ValidationError(
                 {
-                    "password": "비밀번호는 8자리 이상, 한개 이상의 숫자/알파벳/특수문자(@,$,!,%,*,#,?,&)로 이루어져야합니다."
+                    "password": "비밀번호는 8자리~32자리, 한개 이상의 숫자/알파벳/특수문자(@,$,!,%,*,#,?,&)로 이루어져야합니다."
+                }
+            )
+        if not re.match(USERNAME_REGEX, attrs.get("username")):
+            raise serializers.ValidationError(
+                {
+                    "username": "길이 6자리 ~32자리, 알파벳으로 시작하고 알파벳 대소문자와 숫자, 특수기호 -,_,@ 로 이루어져야합니다."
                 }
             )
         return super().validate(attrs)
