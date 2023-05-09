@@ -1,8 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework import status, permissions
 from rest_framework.response import Response
-
-from user.serializers import UserSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+from user.serializers import UserSerializer, MyTokenObtainSerializer
 
 
 # Create your views here.
@@ -25,3 +25,7 @@ class UserSignUpAndOutView(APIView):
             user_serialized.save()
             return Response(user_serialized.data, status=status.HTTP_201_CREATED)
         return Response(user_serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MyTokenObtaionVeiw(TokenObtainPairView):
+    serializer_class = MyTokenObtainSerializer
