@@ -4,4 +4,7 @@
     "html.format.enable": false,
     "prettier.useTabs": false,
     "prettier.tabWidth": 4,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
 }
