@@ -64,6 +64,12 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class MyTokenObtainSerializer(TokenObtainPairSerializer):
+    """
+    토큰 발급시 사용되는 serializer입니다.
+    기본 제공되는 것을 상속하여 메소드 오버라이딩하여 사용합니다.
+    email과 username을 payload에 담습니다.
+    """
+
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
