@@ -6,8 +6,7 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 class UserManager(BaseUserManager):
     def create_user(self, username=None, email=None, password=None, **kwargs):
         """
-        Creates and saves a User with the given email, date of
-        birth and password.
+        Creates and saves a User with the given email, username and password.
         """
         if not username:
             raise ValueError("Users must have username")
@@ -34,6 +33,11 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser):
+    """
+    커스텀 유저 모델입니다.
+    username(아이디), email(이메일,필수,unique), password, is_active, is_admin을 필드로 가진다.
+    """
+
     username = models.CharField(max_length=32, unique=True, primary_key=True)
     email = models.EmailField(
         verbose_name="email address",
