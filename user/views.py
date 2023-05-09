@@ -29,7 +29,7 @@ class UserSignUpAndOutView(APIView):
 
 class MyTokenObtaionVeiw(TokenObtainPairView):
     """
-    토큰 발급시 사용되는 serializer입니다.
+    토큰 발급시 사용되는 view입니다.
     기본 제공되는 것을 상속하여 속성(serializer_class)을 다시 지정해 사용합니다.
     기본제공되는 시리얼라이저를 상속해 커스텀한 MyTokenObtainSerializer을 사용합니다.
     """
