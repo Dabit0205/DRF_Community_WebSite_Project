@@ -33,9 +33,9 @@ class ArticleView(APIView):
         db에 저장될 때 요청한 user의 정보를 저장해야 합니다.
         생성에 성공하면 상태메시지 201을 그렇지 않을 경우 400을 출력합니다.
         """
-        serializer = ArticleCreateSerializer(date=request.data)
+        serializer = ArticleCreateSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            serializer.save(author=request.user)
             return Response(
                 {"message": "작성완료"}, serializer.data, status=status.HTTP_201_CREATED
             )
