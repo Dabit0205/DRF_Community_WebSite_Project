@@ -7,6 +7,7 @@ from user.serializers import (
     MyTokenObtainSerializer,
     UserSignOutSerializer,
 )
+from user.permissions import SignOutAuthenticatedOnly
 from rest_framework.generics import get_object_or_404
 from user.models import User
 
@@ -18,7 +19,7 @@ class UserSignUpAndOutView(APIView):
     Post(가입)와 Delete(탈퇴) 요청만 받음.
     """
 
-    # permission_classes = (IsExsistDeleteXorCreateOnly,)
+    permission_classes = (SignOutAuthenticatedOnly,)
 
     def post(self, request):
         """
@@ -38,6 +39,7 @@ class UserSignUpAndOutView(APIView):
         일치하면 해당 유저의 is_active 값을 False로 바꾼다.
         상태코드 200 : 탈퇴성공
         상태코드 400 : 비밀번호 틀림
+        상태코드 401 : 만료토큰/로그인안함
         """
         user = request.user
         user = get_object_or_404(User, id=user.id)
