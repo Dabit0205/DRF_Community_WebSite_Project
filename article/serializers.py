@@ -8,6 +8,14 @@ class ArticleSerializer(serializers.ModelSerializer):
     article db에 저장된 모든 게시글을 보여줍니다.
     """
 
+    author = serializers.SerializerMethodField()
+
+    def get_author(self, obj):
+        """
+        게시글을 출력할 때 int형태의 author_id가 아닌 회원가입 시 생성한 username 출력
+        """
+        return obj.author.username
+
     class Meta:
         model = Article
         fields = "__all__"

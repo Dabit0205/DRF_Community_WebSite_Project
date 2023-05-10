@@ -3,6 +3,7 @@ from rest_framework.decorators import APIView
 from rest_framework.response import Response
 from article.models import Article
 from article.serializers import ArticleSerializer, ArticleCreateSerializer
+from article.permissions import IsOwnerOrReadOnly
 
 # Create your views here.
 
@@ -45,3 +46,22 @@ class ArticleView(APIView):
             )
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ArticleDetailView(APIView):
+    """
+    ArticleDetailView에서는 게시글 상세보기, 게시글 수정, 게시글 삭제를 수행합니다.
+    premission으로 준 IsOwnerOrReadOnly은 요청자가 게시글의 작성자일 경우와 아닐 경우를 판단하여
+    권한을 부여합니다, 기본적으로 읽기 권한만을 주어 게시글을 관리합니다.
+    article_id를 이용하여 대상을 지정하여 여러 메서드를 통해 기능을 동작합니다.
+    """
+
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
+    def get(self, request, article_id):
+        """
+        get 방식으로 접근 시 제시한 article_id의 게시글을 보여줍니다.
+        """
+        article = Article.objects.get(id=article_id)
+        serializer = ArticleSerializer(article)
+        return Response(serializer.data, status=status.HTTP_200_OK)
