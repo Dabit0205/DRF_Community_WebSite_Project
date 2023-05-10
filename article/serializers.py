@@ -12,7 +12,7 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     def get_author(self, obj):
         """
-        게시글을 출력할 때 int형태의 author_id가 아닌 회원가입 시 생
+        게시글을 출력할 때 int형태의 author_id가 아닌 회원가입 시 생성한 username 출력
         """
         return obj.author.username
 
