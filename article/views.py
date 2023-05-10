@@ -1,4 +1,4 @@
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.decorators import APIView
 from rest_framework.response import Response
 from article.models import Article
@@ -15,6 +15,8 @@ class ArticleView(APIView):
     post방식을 사용하면 게시글을 등록할 수 있습니다.
     """
 
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
     def get(self, request):
         """
         objects.all()을 통해 모델에 저장된 모든 것을 가져옵니다.
@@ -27,17 +29,19 @@ class ArticleView(APIView):
 
     def post(self, request):
         """
-        is_valid로 title과 content가 형식에 맞게 들어왔는지 확인합니다.
-        통과 시 저장합니다, 토큰은 사용자를 인증하는데 사용됩니다,
-        그렇기에 save 시 user정보가 담기지 않습니다, user를 따로 지정해주어,
-        db에 저장될 때 요청한 user의 정보를 저장해야 합니다.
-        생성에 성공하면 상태메시지 201을 그렇지 않을 경우 400을 출력합니다.
+        토큰에서 유저 정보를 받을 수 있기 때문에 수정되었습니다.
+        data 부분에는 게시글의 title,content를 받아 valid 작업을 받습니다.
+        context에는 request요청을 한 유저의 정보를 받습니다. author_id를 저장하기 위해 사용되었습니다.
+        serializer를 통해 검증된 정보를 만들어 return시켜줍니다.
         """
-        serializer = ArticleCreateSerializer(data=request.data)
+        serializer = ArticleCreateSerializer(
+            data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
-            serializer.save(author=request.user)
+            serializer.save()
             return Response(
-                {"message": "작성완료"}, serializer.data, status=status.HTTP_201_CREATED
+                {"message": "작성완료"},
+                status=status.HTTP_201_CREATED,
             )
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
