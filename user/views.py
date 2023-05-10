@@ -2,7 +2,14 @@ from rest_framework.views import APIView
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-from user.serializers import UserSerializer, MyTokenObtainSerializer
+from user.serializers import (
+    UserSerializer,
+    MyTokenObtainSerializer,
+    UserSignOutSerializer,
+)
+from user.permissions import SignOutAuthenticatedOnly
+from rest_framework.generics import get_object_or_404
+from user.models import User
 
 
 # Create your views here.
@@ -12,7 +19,7 @@ class UserSignUpAndOutView(APIView):
     Post(가입)와 Delete(탈퇴) 요청만 받음.
     """
 
-    # permission_classes = (IsExsistDeleteXorCreateOnly,)
+    permission_classes = (SignOutAuthenticatedOnly,)
 
     def post(self, request):
         """
@@ -25,6 +32,23 @@ class UserSignUpAndOutView(APIView):
             user_serialized.save()
             return Response(user_serialized.data, status=status.HTTP_201_CREATED)
         return Response(user_serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        """
+        회원탈퇴를 위해 passoword를 입력받아 현재 로그인 중인 유저(request.user)와 비교 후
+        일치하면 해당 유저의 is_active 값을 False로 바꾼다.
+        상태코드 200 : 탈퇴성공
+        상태코드 400 : 비밀번호 틀림
+        상태코드 401 : 만료토큰/로그인안함
+        """
+        user = request.user
+        user = get_object_or_404(User, id=user.id)
+        serializer = UserSignOutSerializer(user, request.data)
+        if serializer.is_valid():
+            user.is_active = False
+            user.save()
+            return Response({"message": "signout_success"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MyTokenObtaionVeiw(TokenObtainPairView):

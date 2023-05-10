@@ -63,6 +63,27 @@ class UserSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
 
 
+class UserSignOutSerializer(serializers.ModelSerializer):
+    """
+    회원 탈퇴를 위해 오직 password만 받는 serializer 이다.
+    create도 update도 하지 않는다.
+    오직 비밀번호 일치 여부만 validate한다.
+    """
+
+    class Meta:
+        model = User
+        fields = ("password",)
+        extra_kwargs = {
+            # write_only : 해당 필드를 쓰기 전용으로 만들어 준다.
+            "password": {"write_only": True},
+        }
+
+    def validate(self, attrs):
+        if not self.instance.check_password(attrs.get("password")):
+            raise serializers.ValidationError({"password": "password wrong."})
+        return super().validate(attrs)
+
+
 class MyTokenObtainSerializer(TokenObtainPairSerializer):
     """
     토큰 발급시 사용되는 serializer입니다.
