@@ -6,6 +6,7 @@ from user.serializers import (
     UserSerializer,
     MyTokenObtainSerializer,
     UserSignOutSerializer,
+    UserEditSerializer,
 )
 from user.permissions import SignOutAuthenticatedOnly
 from rest_framework.generics import get_object_or_404
@@ -27,11 +28,11 @@ class UserSignUpAndOutView(APIView):
         상태코드 201 / 생성된 유저 정보(username,email)반환
         옳지 않은 입력(필수 입력 필드 빼먹거나 비밀번호 불일치)일 시 400 / error 반환
         """
-        user_serialized = UserSerializer(data=request.data)
-        if user_serialized.is_valid():
-            user_serialized.save()
-            return Response(user_serialized.data, status=status.HTTP_201_CREATED)
-        return Response(user_serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+        serialized = UserSerializer(data=request.data)
+        if serialized.is_valid():
+            serialized.save()
+            return Response(serialized.data, status=status.HTTP_201_CREATED)
+        return Response(serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request):
         """
@@ -49,6 +50,26 @@ class UserSignUpAndOutView(APIView):
             user.save()
             return Response({"message": "signout_success"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request):
+        """
+        회원정보 변경을 위해 current_passoword를 입력받아 현재 로그인 중인 유저(request.user)와 비교 후
+        일치하면 해당 유저의 정보(password...)를 수정한다.
+        """
+        user = get_object_or_404(User, id=request.user.id)
+        serialized = UserEditSerializer(user, request.data, partial=True)
+        if serialized.is_valid():
+            serialized.save()
+            return Response({"message": "변경성공"}, status=status.HTTP_200_OK)
+        return Response(serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        """
+        로그인한 유저 본인의 정보(이메일,아이디, 추후 추가될 수 있는 필드들)를 가져온다.
+        """
+        user = get_object_or_404(User, id=request.user.id)
+        serialized = UserEditSerializer(user)
+        return Response(serialized.data, status=status.HTTP_200_OK)
 
 
 class MyTokenObtaionVeiw(TokenObtainPairView):
