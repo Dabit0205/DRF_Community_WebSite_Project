@@ -45,9 +45,7 @@ class UserSignUpAndOutView(APIView):
         if serializer.is_valid():
             user.is_active = False
             user.save()
-            return Response(
-                {"message": "signout_success"}, status=status.HTTP_204_NO_CONTENT
-            )
+            return Response({"message": "signout_success"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
