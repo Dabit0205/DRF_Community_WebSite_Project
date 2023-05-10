@@ -69,17 +69,14 @@ class ArticleDetailView(APIView):
     def put(self, request, article_id):
         """
         title, content를 받아 게시글을 수정합니다.
-        if문을 통해 요청자가 게시글을 작성한 회원과 같은지 확인합니다.
+        IsOwnerOrReadOnly을 통해 권한을 부여합니다.
         알맞은 값을 넣으면 수정완료 메시지를 출력합니다, 그렇지 않을 경우 상태메시지 400을 출력합니다.
-        요청자가 작성자와 다르고 수정을 시도하면 권한이 없다는 메시지를 출력합니다.
         """
         article = Article.objects.get(id=article_id)
-        if request.user == article.author:
-            serializer = ArticleCreateSerializer(article, data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response({"message": "수정완료"}, status=status.HTTP_200_OK)
-            else:
-                return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        serializer = ArticleCreateSerializer(article, data=request.data)
+        self.check_object_permissions(self.request, article)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "수정완료"}, status=status.HTTP_200_OK)
         else:
-            return Response({"message": "권한이없습니다"}, status=status.HTTP_403_FORBIDDEN)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
