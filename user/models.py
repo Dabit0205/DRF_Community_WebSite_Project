@@ -78,6 +78,12 @@ class User(AbstractBaseUser):
 
 
 class Profile(models.Model):
+    """
+    프로필 모델입니다.
+    이미지와 bio, 작성시간과 수정시간을 필드로 가진다.
+    User와 1대1관계
+    """
+
     class Meta:
         db_table = "profile"
 

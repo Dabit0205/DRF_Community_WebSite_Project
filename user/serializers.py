@@ -158,6 +158,11 @@ class UserEditSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    """
+    프로필을 조회하기 위한 시리얼라이저
+    역참조를 통해 작성한 글들과 이메일을 불러온다.
+    """
+
     username = serializers.StringRelatedField()
     email = serializers.SerializerMethodField()
     articles = serializers.SerializerMethodField()
