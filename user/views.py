@@ -7,10 +7,12 @@ from user.serializers import (
     MyTokenObtainSerializer,
     UserSignOutSerializer,
     UserEditSerializer,
+    ProfileSerializer,
+    ProfileEditSerializer,
 )
-from user.permissions import SignOutAuthenticatedOnly
+from user.permissions import SignOutAuthenticatedOnly, IsMeOrReadOnly
 from rest_framework.generics import get_object_or_404
-from user.models import User
+from user.models import User, Profile
 
 
 # Create your views here.
@@ -80,3 +82,37 @@ class MyTokenObtaionVeiw(TokenObtainPairView):
     """
 
     serializer_class = MyTokenObtainSerializer
+
+
+class ProfileView(APIView):
+    """
+    프로필 수정 및 조회를 위한 뷰
+    """
+
+    permission_classes = [IsMeOrReadOnly]
+
+    def get(self, request, user_id):
+        """
+        프로필 조회
+        username, email, image, bio, created_at, updated_at, articles
+        탈퇴한 사용자는 조회할 수 없다.
+        """
+        profile = get_object_or_404(Profile, username=user_id)
+        if not profile.username.is_active:
+            return Response({"message": "탈퇴한 사용자입니다"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            serialized = ProfileSerializer(profile)
+
+        return Response(serialized.data, status=status.HTTP_200_OK)
+
+    def put(self, request, user_id):
+        """
+        프로필 수정
+        bio와 image만 수정가능하다.
+        """
+        profile = get_object_or_404(Profile, username=user_id)
+        self.check_object_permissions(request, profile)
+        serialized = ProfileEditSerializer(profile, data=request.data, partial=True)
+        if serialized.is_valid():
+            serialized.save()
+            return Response({"message": "edit success"}, status=status.HTTP_200_OK)

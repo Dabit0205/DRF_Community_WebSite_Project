@@ -75,3 +75,20 @@ class User(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
+
+
+class Profile(models.Model):
+    """
+    프로필 모델입니다.
+    이미지와 bio, 작성시간과 수정시간을 필드로 가진다.
+    User와 1대1관계
+    """
+
+    class Meta:
+        db_table = "profile"
+
+    username = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    image = models.ImageField(blank=True, upload_to="%Y/%m/")
+    bio = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
