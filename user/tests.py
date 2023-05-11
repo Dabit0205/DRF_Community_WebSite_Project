@@ -86,7 +86,7 @@ class UserPATCHTestCase(UserBaseTestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         """
-        부모클래스에서 사용한 user 정보는 탈퇴 검증과정에서 is_activate가 불활성화되므로 새로 지정한다.
+        부모클래스에서 사용한 user 정보는 탈퇴 검증과정에서 is_activate가 비활성화되므로 새로 지정한다.
         """
         cls.user = User.objects.create_user(
             username="zxcvbnasdf_@",
