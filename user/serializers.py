@@ -13,7 +13,7 @@ def password_validation(password, password2):
     둘의 일치를 먼저 확인하고 입력값 자체가 유효한지 regex를 이용해 확인합니다.
     """
     if password != password2:
-        raise serializers.ValidationError({"password": "두 비멀번호가 일치하지 않습니다."})
+        raise serializers.ValidationError({"password": "두 비밀번호가 일치하지 않습니다."})
 
     if password != None and not re.match(PASSWORD_REGEX, password):
         raise serializers.ValidationError(
@@ -144,7 +144,7 @@ class UserEditSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """
-        입력된 현재 비밀번호의 유효성부터 겸사합니다.
+        입력된 현재 비밀번호의 유효성부터 검사합니다.
         """
         if not self.instance.check_password(attrs.get("current_password")):
             raise serializers.ValidationError(

@@ -65,3 +65,30 @@ class ArticleDetailView(APIView):
         article = Article.objects.get(id=article_id)
         serializer = ArticleSerializer(article)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, article_id):
+        """
+        title, content를 받아 게시글을 수정합니다.
+        IsOwnerOrReadOnly을 통해 권한을 부여합니다.
+        알맞은 값을 넣으면 수정완료 메시지를 출력합니다, 그렇지 않을 경우 상태메시지 400을 출력합니다.
+        """
+        article = Article.objects.get(id=article_id)
+        serializer = ArticleCreateSerializer(article, data=request.data)
+        self.check_object_permissions(self.request, article)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "수정완료"}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, article_id):
+        """
+        게시글을 삭제하는 기능을 합니다.
+        게시글 작성자와 요청자를 비교하여 같다면 delete권한을 부여합니다.
+        권한이 없을 경우 권한이 없습니다 메시지가 출력됩니다.
+        삭제가 완료되면 삭제완료 메시지와 상태메시지 204가 출력됩니다.
+        """
+        article = Article.objects.get(id=article_id)
+        self.check_object_permissions(self.request, article)
+        article.delete()
+        return Response({"message": "삭제완료"}, status=status.HTTP_204_NO_CONTENT)
