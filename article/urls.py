@@ -8,4 +8,5 @@ urlpatterns = [
         views.ArticleDetailView.as_view(),
         name="article_detail_view",
     ),
+    path("<int:article_id>/like/", views.LikeView.as_view(), name="like_view"),
 ]

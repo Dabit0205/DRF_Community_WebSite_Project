@@ -2,10 +2,12 @@ from rest_framework import status, permissions
 from rest_framework.decorators import APIView
 from rest_framework.response import Response
 from rest_framework import generics
+from rest_framework.exceptions import NotFound
 from article.models import Article
 from article.serializers import ArticleSerializer, ArticleCreateSerializer
 from article.permissions import IsOwnerOrReadOnly
 from article.paginations import ArticlePagination
+from user.serializers import UserSerializer
 
 
 # Create your views here.
@@ -94,3 +96,46 @@ class ArticleDetailView(APIView):
         self.check_object_permissions(self.request, article)
         article.delete()
         return Response({"message": "삭제완료"}, status=status.HTTP_204_NO_CONTENT)
+
+
+class LikeView(APIView):
+    """
+    LikeView에서는 게시글 좋아요 기능을 수행합니다.
+    article_id를 이용하여 대상을 지정하여 POST 메서드를 통해 기능을 동작합니다.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, article_id):
+        """
+        article_id를 이용해서 게시글을 가져옵니다.
+        작성한 게시글이 없다면 예외처리 됩니다.
+        """
+        try:
+            return Article.objects.get(id=article_id)
+        except Article.DoesNotExist:
+            raise NotFound(detail="작성한 글이 없습니다.", code=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, article_id):
+        """
+        get 방식으로 접근 시 제시한 article_id의 게시글의 좋아요 상태를 보여줍니다.
+        """
+        article = self.get_object(article_id)
+        likes = article.likes.all()
+        users = [like.user for like in likes]
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, article_id):
+        """
+        article_id에 해당하는 게시글을 가져오고, 해당 게시글의 likes 필드에 현재 요청한 유저가 이미 좋아요를 눌렀는지 확인합니다.
+        만약 좋아요를 눌렀다면 likes 필드에서 해당 유저를 삭제하고, 좋아요를 누르지 않았다면 likes 필드에 해당 유저를 추가합니다.
+        그리고 해당 동작에 대한 메시지와 함께 적절한 HTTP 응답 상태 코드를 반환합니다.
+        """
+        article = self.get_object(article_id)
+        if request.user in article.likes.all():
+            article.likes.remove(request.user)
+            return Response({"message": "unlike했습니다."}, status=status.HTTP_200_OK)
+        else:
+            article.likes.add(request.user)
+            return Response({"message": "like했습니다."}, status=status.HTTP_200_OK)
