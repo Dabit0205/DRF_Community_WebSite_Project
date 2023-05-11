@@ -13,6 +13,7 @@ from user.serializers import (
 from user.permissions import SignOutAuthenticatedOnly, IsMeOrReadOnly
 from rest_framework.generics import get_object_or_404
 from user.models import User, Profile
+from article.serializers import ArticleSerializer
 
 
 # Create your views here.
@@ -102,8 +103,13 @@ class ProfileView(APIView):
             return Response({"message": "탈퇴한 사용자입니다"}, status=status.HTTP_404_NOT_FOUND)
         else:
             serialized = ProfileSerializer(profile)
-
-        return Response(serialized.data, status=status.HTTP_200_OK)
+        response_data = {
+            "profile_data": serialized.data,
+            "articles": ArticleSerializer(
+                profile.username.article_set.all(), many=True
+            ).data,
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
 
     def put(self, request, user_id):
         """

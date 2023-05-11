@@ -165,14 +165,9 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     username = serializers.StringRelatedField()
     email = serializers.SerializerMethodField()
-    articles = serializers.SerializerMethodField()
 
     def get_email(self, obj):
         return obj.username.email
-
-    def get_articles(self, obj):
-        print(obj.username.article_set)
-        return obj.username.article_set.all()
 
     class Meta:
         model = Profile
