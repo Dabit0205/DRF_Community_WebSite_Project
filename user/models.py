@@ -36,6 +36,7 @@ class User(AbstractBaseUser):
     """
     커스텀 유저 모델입니다.
     username(아이디), email(이메일,필수,unique), password, is_active, is_admin을 필드로 가진다.
+    팔로우/팔로워 필드를 가진다.
     """
 
     username = models.CharField(
@@ -49,6 +50,12 @@ class User(AbstractBaseUser):
     )
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    followings = models.ManyToManyField(
+        "self",
+        symmetrical=False,
+        related_name="followers",
+        blank=True,
+    )
 
     objects = UserManager()
 

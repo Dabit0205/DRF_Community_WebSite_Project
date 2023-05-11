@@ -7,7 +7,11 @@ from article.models import Article
 from article.serializers import ArticleSerializer, ArticleCreateSerializer
 from article.permissions import IsOwnerOrReadOnly
 from article.paginations import ArticlePagination
+
+from django.db.models.query_utils import Q
+
 from user.serializers import UserSerializer
+
 
 
 # Create your views here.
@@ -99,6 +103,22 @@ class ArticleDetailView(APIView):
         return Response({"message": "삭제완료"}, status=status.HTTP_204_NO_CONTENT)
 
 
+
+class FeedView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        q = Q()
+        if not len(request.user.followings.all()):
+            return Response(
+                {"message": "아직 아무도 구독하지 않았습니다."}, status=status.HTTP_200_OK
+            )
+        for user in request.user.followings.all():
+            q.add(Q(user=user), q.OR)
+        feeds = Article.objects.filter(q)
+        serialized = ArticleSerializer(feeds, many=True)
+        return Response(serialized.data, status=status.HTTP_200_OK)
+
 class LikeView(APIView):
     """
     LikeView에서는 게시글 좋아요 기능을 수행합니다.
@@ -140,3 +160,4 @@ class LikeView(APIView):
         else:
             article.likes.add(request.user)
             return Response({"message": "like했습니다."}, status=status.HTTP_200_OK)
+
