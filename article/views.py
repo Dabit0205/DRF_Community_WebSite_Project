@@ -20,12 +20,13 @@ class ArticleView(generics.ListCreateAPIView):
     def get의 역할을 ListCreateAPIView에서 지원하기에 따로 지정해 줄 필요가 없습니다.
     queryset을 통해 article의 내용을 가져옵니다.
     필요한 것을 명시해주면 간단히 get 요청을 구현할 수 있습니다.
+    order_by를 이용하여 최신 게시글을 가장 먼저 출력합니다.
     """
 
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     paginations_class = ArticlePagination
     serializer_class = ArticleSerializer
-    queryset = Article.objects.all()
+    queryset = Article.objects.all().order_by("-created_at")
 
     def post(self, request, *args, **kwargs):
         """
