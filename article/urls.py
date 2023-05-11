@@ -8,4 +8,5 @@ urlpatterns = [
         views.ArticleDetailView.as_view(),
         name="article_detail_view",
     ),
+    path("feed/", views.FeedView.as_view(), name="feed"),
 ]

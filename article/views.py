@@ -6,6 +6,7 @@ from article.models import Article
 from article.serializers import ArticleSerializer, ArticleCreateSerializer
 from article.permissions import IsOwnerOrReadOnly
 from article.paginations import ArticlePagination
+from django.db.models.query_utils import Q
 
 
 # Create your views here.
@@ -94,3 +95,19 @@ class ArticleDetailView(APIView):
         self.check_object_permissions(self.request, article)
         article.delete()
         return Response({"message": "삭제완료"}, status=status.HTTP_204_NO_CONTENT)
+
+
+class FeedView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        q = Q()
+        if not len(request.user.followings.all()):
+            return Response(
+                {"message": "아직 아무도 구독하지 않았습니다."}, status=status.HTTP_200_OK
+            )
+        for user in request.user.followings.all():
+            q.add(Q(user=user), q.OR)
+        feeds = Article.objects.filter(q)
+        serialized = ArticleSerializer(feeds, many=True)
+        return Response(serialized.data, status=status.HTTP_200_OK)
