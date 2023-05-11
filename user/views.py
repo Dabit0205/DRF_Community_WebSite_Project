@@ -13,10 +13,14 @@ from user.serializers import (
 from user.permissions import SignOutAuthenticatedOnly, IsMeOrReadOnly
 from rest_framework.generics import get_object_or_404
 from user.models import User, Profile
+
 from article.serializers import ArticleSerializer
 
+from django.db.models.query_utils import Q
 
-# Create your views here.
+
+
+# Create the_userr views here.
 class UserSignUpAndOutView(APIView):
     """
     사용자가 회원가입 하거나 회원 탈퇴를 하기 위한 APIView이다.
@@ -122,3 +126,18 @@ class ProfileView(APIView):
         if serialized.is_valid():
             serialized.save()
             return Response({"message": "edit success"}, status=status.HTTP_200_OK)
+
+
+class FollowView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, user_id):
+        the_user = get_object_or_404(User, id=user_id)
+        if the_user == request.user:
+            return Response("Can't self follow", status=status.HTTP_400_BAD_REQUEST)
+        if the_user in request.user.followings.all():
+            request.user.followings.remove(the_user)
+            return Response("Unfollow", status=status.HTTP_200_OK)
+        else:
+            request.user.followings.add(the_user)
+            return Response("Follow", status=status.HTTP_200_OK)
