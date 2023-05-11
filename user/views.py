@@ -7,10 +7,12 @@ from user.serializers import (
     MyTokenObtainSerializer,
     UserSignOutSerializer,
     UserEditSerializer,
+    ProfileSerializer,
+    ProfileEditSerializer,
 )
-from user.permissions import SignOutAuthenticatedOnly
+from user.permissions import SignOutAuthenticatedOnly, IsMeOrReadOnly
 from rest_framework.generics import get_object_or_404
-from user.models import User
+from user.models import User, Profile
 
 
 # Create your views here.
@@ -80,3 +82,24 @@ class MyTokenObtaionVeiw(TokenObtainPairView):
     """
 
     serializer_class = MyTokenObtainSerializer
+
+
+class ProfileView(APIView):
+    permission_classes = [IsMeOrReadOnly]
+
+    def get(self, request, user_id):
+        profile = get_object_or_404(Profile, username=user_id)
+        if not profile.username.is_active:
+            return Response({"message": "탈퇴한 사용자입니다"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            serialized = ProfileSerializer(profile)
+
+        return Response(serialized.data, status=status.HTTP_200_OK)
+
+    def put(self, request, user_id):
+        profile = get_object_or_404(Profile, username=user_id)
+        self.check_object_permissions(request, profile)
+        serialized = ProfileEditSerializer(profile, data=request.data, partial=True)
+        if serialized.is_valid():
+            serialized.save()
+            return Response({"message": "edit success"}, status=status.HTTP_200_OK)

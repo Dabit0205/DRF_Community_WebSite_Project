@@ -10,4 +10,5 @@ urlpatterns = [
     # refresh /access token이 expire하지 않았는지 post 메소드로 request body에 실어 확인.
     # {"token":"<토큰문자열>"} -> 유효할시 상태코드 200, 아닐시 401
     path("verify/", TokenVerifyView.as_view(), name="verify"),
+    path("<int:user_id>/", views.ProfileView.as_view(), name="profile"),
 ]

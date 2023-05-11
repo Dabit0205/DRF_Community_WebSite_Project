@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import User
+from .models import User, Profile
 import re
 
 PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,32}$"
@@ -53,6 +53,9 @@ class UserSerializer(serializers.ModelSerializer):
         user = super().create(validated_data)
         user.set_password(validated_data["password"])  # 비밀번호 저장(해쉬)
         user.save()
+        new_profile = Profile()
+        new_profile.username = user
+        new_profile.save()
         return user
 
     def validate(self, attrs):
@@ -152,3 +155,26 @@ class UserEditSerializer(serializers.ModelSerializer):
             )
         password_validation(attrs.get("password"), attrs.get("password2"))
         return super().validate(attrs)
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    username = serializers.StringRelatedField()
+    email = serializers.SerializerMethodField()
+    articles = serializers.SerializerMethodField()
+
+    def get_email(self, obj):
+        return obj.username.email
+
+    def get_articles(self, obj):
+        print(obj.username.article_set)
+        return obj.username.article_set.all()
+
+    class Meta:
+        model = Profile
+        fields = "__all__"
+
+
+class ProfileEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ("bio", "image")
