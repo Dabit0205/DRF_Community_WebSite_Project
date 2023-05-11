@@ -83,21 +83,6 @@ class UserPATCHTestCase(UserBaseTestCase):
     유저정보 수정을 검증하기 위한 클래스
     """
 
-    @classmethod
-    def setUpTestData(cls) -> None:
-        """
-        부모클래스에서 사용한 user 정보는 탈퇴 검증과정에서 is_activate가 비활성화되므로 새로 지정한다.
-        """
-        cls.user = User.objects.create_user(
-            username="zxcvbnasdf_@",
-            email="abcd@navers.com",
-            password="asdf1234!!",
-        )
-        cls.user_data = {"username": "zxcvbnasdf_@", "password": "asdf1234!!"}
-
-    def setUp(self) -> None:
-        self.access = self.client.post(reverse("token"), self.user_data).data["access"]
-
     def test_logined(self):
         """
         일반적으로 로그인한 유저의 경우
