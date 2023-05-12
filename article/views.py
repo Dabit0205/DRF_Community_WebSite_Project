@@ -162,15 +162,27 @@ class LikeView(APIView):
 
 
 class BookmarkView(APIView):
+    """
+    BookmarkView에서는 게시글 북마크 기능을 수행합니다.
+    article_id를 이용하여 대상을 지정하여 POST 메서드를 통해 기능을 동작합니다.
+    """
+
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self, article_id):
+        """
+        article_id를 이용해서 게시글을 가져옵니다.
+        북마크한 게시글이 없다면 예외처리 됩니다.
+        """
         try:
             return Article.objects.get(id=article_id)
         except Article.DoesNotExist:
-            raise NotFound(detail="북마크한 글이 없습니다.", code=status.HTTP_404_NOT_FOUND)
+            raise NotFound(detail="작성한 글이 없습니다.", code=status.HTTP_404_NOT_FOUND)
 
     def get(self, request, article_id):
+        """
+        get 방식으로 접근 시 제시한 article_id의 게시글의 북마크 상태를 보여줍니다.
+        """
         article = self.get_object(article_id)
         bookmarks = article.bookmarks.all()
         users = [bookmark.user for bookmark in bookmarks]
@@ -178,6 +190,11 @@ class BookmarkView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, article_id):
+        """
+        article_id에 해당하는 게시글을 가져오고, 해당 게시글의 bookmark 필드에 현재 요청한 유저가 이미 북마크를 눌렀는지 확인합니다.
+        만약 북마크를 눌렀다면 bookmark 필드에서 해당 유저를 삭제하고, 북마크를 누르지 않았다면 bookmark 필드에 해당 유저를 추가합니다.
+        그리고 해당 동작에 대한 메시지와 함께 적절한 HTTP 응답 상태 코드를 반환합니다.
+        """
         article = self.get_object(article_id)
         if request.user in article.bookmarks.all():
             article.bookmarks.remove(request.user)
