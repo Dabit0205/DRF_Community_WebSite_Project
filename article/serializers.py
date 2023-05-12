@@ -6,8 +6,10 @@ class ArticleSerializer(serializers.ModelSerializer):
     """
     article/ url에 GET방식일 때 사용합니다.
     article db에 저장된 모든 게시글을 보여줍니다.
+    DateTimeField를 사용하여 시간 가독성을 좋게했습니다.
     """
 
+    created_at = serializers.DateTimeField(format="%m월%d일 %H:%M", read_only=True)
     author = serializers.SerializerMethodField()
 
     def get_author(self, obj):
@@ -25,8 +27,10 @@ class ArticleListSerializer(serializers.ModelSerializer):
     """
     전체 게시글을 확인하기 위해 만들었습니다.
     제목, 작성자, 좋아요 수, 생성일을 표시합니다 + comment 추가 시 comment 수도 출력예정
+    DateTimeField를 사용하여 시간 가독성을 좋게했습니다.
     """
 
+    created_at = serializers.DateTimeField(format="%m월%d일 %H:%M", read_only=True)
     author = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()
     """
@@ -53,8 +57,12 @@ class ArticleListSerializer(serializers.ModelSerializer):
     #     return obj.comment_set.count()
 
     class Meta:
+        """
+        id는 aticle_id 입니다.
+        """
+
         model = Article
-        fields = ("title", "author", "likes_count", "created_at")
+        fields = ("id", "title", "author", "likes_count", "created_at")
 
 
 class ArticleCreateSerializer(serializers.ModelSerializer):
