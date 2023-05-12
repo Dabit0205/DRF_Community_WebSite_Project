@@ -13,7 +13,6 @@ from django.db.models.query_utils import Q
 from user.serializers import UserSerializer
 
 
-
 # Create your views here.
 
 
@@ -103,7 +102,6 @@ class ArticleDetailView(APIView):
         return Response({"message": "삭제완료"}, status=status.HTTP_204_NO_CONTENT)
 
 
-
 class FeedView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -114,10 +112,11 @@ class FeedView(APIView):
                 {"message": "아직 아무도 구독하지 않았습니다."}, status=status.HTTP_200_OK
             )
         for user in request.user.followings.all():
-            q.add(Q(user=user), q.OR)
+            q.add(Q(author=user), q.OR)
         feeds = Article.objects.filter(q)
         serialized = ArticleSerializer(feeds, many=True)
         return Response(serialized.data, status=status.HTTP_200_OK)
+
 
 class LikeView(APIView):
     """
@@ -160,4 +159,3 @@ class LikeView(APIView):
         else:
             article.likes.add(request.user)
             return Response({"message": "like했습니다."}, status=status.HTTP_200_OK)
-
