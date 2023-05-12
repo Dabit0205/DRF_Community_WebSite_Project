@@ -133,7 +133,9 @@ class FollowView(APIView):
     def post(self, request, user_id):
         the_user = get_object_or_404(User, id=user_id)
         if the_user == request.user:
-            return Response("Can't self follow", status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "Can't self follow"}, status=status.HTTP_400_BAD_REQUEST
+            )
         if the_user in request.user.followings.all():
             request.user.followings.remove(the_user)
             return Response({"message": "Unfollow"}, status=status.HTTP_200_OK)
