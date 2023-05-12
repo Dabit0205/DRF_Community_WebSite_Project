@@ -1,10 +1,9 @@
 from rest_framework import status, permissions
 from rest_framework.decorators import APIView
 from rest_framework.response import Response
-from article.models import Article
-from article.serializers import ArticleSerializer, ArticleCreateSerializer
+from article.models import Article, Comment
+from article.serializers import ArticleSerializer, ArticleCreateSerializer, CommentCreateSerializer, CommentSerializer
 from article.permissions import IsOwnerOrReadOnly
-
 # Create your views here.
 
 
@@ -92,3 +91,34 @@ class ArticleDetailView(APIView):
         self.check_object_permissions(self.request, article)
         article.delete()
         return Response({"message": "삭제완료"}, status=status.HTTP_204_NO_CONTENT)
+    
+class CommentView(APIView):
+    """
+    댓글을 작성하는 공간입니다.
+    GET 요청을 처리하여 특정 게시물의 댓글 데이터를 반환하는 기능을 담당합니다.
+    get() 메소드는 특정 게시물에 대한 댓글 데이터를 조회하여 시리얼라이즈한 후, 
+    해당 데이터를 JSON 형식으로 응답으로 반환합니다. 
+    """
+    def get(self, request, article_id):
+        article = Article.objects.get(id=article_id)
+        comments = article.comment_set.all()
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data, status = status.HTTP_200_OK)
+    
+    def post(self, request, article_id):
+        serializer = CommentCreateSerializer(data=request.data, context={"request": request})
+        if serializer.is_valid():
+            serializer.save(author = request.user, article_id = article_id)
+            return Response(
+                {"message": "작성완료"},
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class CommentDetailView(APIView):
+    def put(self, request, article_id):
+        pass
+    
+    def delete (self, request):
+        pass
