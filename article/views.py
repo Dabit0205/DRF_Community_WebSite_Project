@@ -4,7 +4,11 @@ from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.exceptions import NotFound
 from article.models import Article
-from article.serializers import ArticleSerializer, ArticleCreateSerializer
+from article.serializers import (
+    ArticleSerializer,
+    ArticleListSerializer,
+    ArticleCreateSerializer,
+)
 from article.permissions import IsOwnerOrReadOnly
 from article.paginations import ArticlePagination
 
@@ -28,7 +32,7 @@ class ArticleView(generics.ListCreateAPIView):
 
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     paginations_class = ArticlePagination
-    serializer_class = ArticleSerializer
+    serializer_class = ArticleListSerializer
     queryset = Article.objects.all().order_by("-created_at")
 
     def post(self, request, *args, **kwargs):
