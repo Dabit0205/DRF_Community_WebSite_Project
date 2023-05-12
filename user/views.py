@@ -19,7 +19,6 @@ from article.serializers import ArticleSerializer
 from django.db.models.query_utils import Q
 
 
-
 # Create the_userr views here.
 class UserSignUpAndOutView(APIView):
     """
@@ -137,7 +136,7 @@ class FollowView(APIView):
             return Response("Can't self follow", status=status.HTTP_400_BAD_REQUEST)
         if the_user in request.user.followings.all():
             request.user.followings.remove(the_user)
-            return Response("Unfollow", status=status.HTTP_200_OK)
+            return Response({"message": "Unfollow"}, status=status.HTTP_200_OK)
         else:
             request.user.followings.add(the_user)
-            return Response("Follow", status=status.HTTP_200_OK)
+            return Response({"message": "Follow"}, status=status.HTTP_200_OK)
