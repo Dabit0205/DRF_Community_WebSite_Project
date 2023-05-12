@@ -159,3 +159,29 @@ class LikeView(APIView):
         else:
             article.likes.add(request.user)
             return Response({"message": "like했습니다."}, status=status.HTTP_200_OK)
+
+
+class BookmarkView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, article_id):
+        try:
+            return Article.objects.get(id=article_id)
+        except Article.DoesNotExist:
+            raise NotFound(detail="북마크한 글이 없습니다.", code=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, article_id):
+        article = self.get_object(article_id)
+        bookmarks = article.bookmarks.all()
+        users = [bookmark.user for bookmark in bookmarks]
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, article_id):
+        article = self.get_object(article_id)
+        if request.user in article.bookmarks.all():
+            article.bookmarks.remove(request.user)
+            return Response({"message": "북마크가 해제되었습니다."}, status=status.HTTP_200_OK)
+        else:
+            article.bookmarks.add(request.user)
+            return Response({"message": "북마크가 추가되었습니다."}, status=status.HTTP_200_OK)
