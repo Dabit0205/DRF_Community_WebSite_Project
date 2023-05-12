@@ -19,6 +19,7 @@ class Article(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     likes = models.ManyToManyField(User, related_name="like_articles")
+    bookmarks = models.ManyToManyField(User, related_name="bookmarked_articles")
 
     def __str__(self):
         return str(self.title)
