@@ -140,16 +140,6 @@ class LikeView(APIView):
         except Article.DoesNotExist:
             raise NotFound(detail="작성한 글이 없습니다.", code=status.HTTP_404_NOT_FOUND)
 
-    def get(self, request, article_id):
-        """
-        get 방식으로 접근 시 제시한 article_id의 게시글의 좋아요 상태를 보여줍니다.
-        """
-        article = self.get_object(article_id)
-        likes = article.likes.all()
-        users = [like.user for like in likes]
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
     def post(self, request, article_id):
         """
         article_id에 해당하는 게시글을 가져오고, 해당 게시글의 likes 필드에 현재 요청한 유저가 이미 좋아요를 눌렀는지 확인합니다.
@@ -183,16 +173,6 @@ class BookmarkView(APIView):
         except Article.DoesNotExist:
             raise NotFound(detail="작성한 글이 없습니다.", code=status.HTTP_404_NOT_FOUND)
 
-    def get(self, request, article_id):
-        """
-        get 방식으로 접근 시 제시한 article_id의 게시글의 북마크 상태를 보여줍니다.
-        """
-        article = self.get_object(article_id)
-        bookmarks = article.bookmarks.all()
-        users = [bookmark.user for bookmark in bookmarks]
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
     def post(self, request, article_id):
         """
         article_id에 해당하는 게시글을 가져오고, 해당 게시글의 bookmark 필드에 현재 요청한 유저가 이미 북마크를 눌렀는지 확인합니다.
@@ -206,3 +186,17 @@ class BookmarkView(APIView):
         else:
             article.bookmarks.add(request.user)
             return Response({"message": "북마크가 추가되었습니다."}, status=status.HTTP_200_OK)
+
+
+class BookmarkListView(APIView):
+    """
+    BookmarkListView에서는 사용자가 북마크한 게시물을 가져와서 제공하는 기능을 수행합니다.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        """ """
+        bookmarked_articles = request.user.bookmarked_articles.all()
+        serializer = ArticleSerializer(bookmarked_articles, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
