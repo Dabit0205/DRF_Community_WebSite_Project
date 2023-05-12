@@ -36,6 +36,7 @@ class User(AbstractBaseUser):
     """
     커스텀 유저 모델입니다.
     username(아이디), email(이메일,필수,unique), password, is_active, is_admin을 필드로 가진다.
+    팔로우/팔로워 필드를 가진다.
     """
 
     username = models.CharField(
@@ -49,6 +50,12 @@ class User(AbstractBaseUser):
     )
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    followings = models.ManyToManyField(
+        "self",
+        symmetrical=False,
+        related_name="followers",
+        blank=True,
+    )
 
     objects = UserManager()
 
@@ -75,3 +82,20 @@ class User(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
+
+
+class Profile(models.Model):
+    """
+    프로필 모델입니다.
+    이미지와 bio, 작성시간과 수정시간을 필드로 가진다.
+    User와 1대1관계
+    """
+
+    class Meta:
+        db_table = "profile"
+
+    username = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    image = models.ImageField(blank=True, upload_to="%Y/%m/")
+    bio = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

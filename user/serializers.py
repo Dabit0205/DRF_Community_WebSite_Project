@@ -1,10 +1,26 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import User
+from .models import User, Profile
 import re
 
 PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,32}$"
 USERNAME_REGEX = "^[A-Za-z\d]+[A-Za-z\d_\-@]{5,31}$"
+
+
+def password_validation(password, password2):
+    """
+    비밀번호와 비밀번호 확인 입력을 검증하기 위한 코드입니다.
+    둘의 일치를 먼저 확인하고 입력값 자체가 유효한지 regex를 이용해 확인합니다.
+    """
+    if password != password2:
+        raise serializers.ValidationError({"password": "두 비밀번호가 일치하지 않습니다."})
+
+    if password != None and not re.match(PASSWORD_REGEX, password):
+        raise serializers.ValidationError(
+            {
+                "password": "비밀번호는 8자리~32자리, 한개 이상의 숫자/알파벳/특수문자(@,$,!,%,*,#,?,&)로 이루어져야합니다."
+            }
+        )
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -37,6 +53,9 @@ class UserSerializer(serializers.ModelSerializer):
         user = super().create(validated_data)
         user.set_password(validated_data["password"])  # 비밀번호 저장(해쉬)
         user.save()
+        new_profile = Profile()
+        new_profile.username = user
+        new_profile.save()
         return user
 
     def validate(self, attrs):
@@ -45,15 +64,7 @@ class UserSerializer(serializers.ModelSerializer):
         passwor와 password2가 일치하는지 확인
         이외 나머지 검증은 부모 클래스의 validate에 맡김
         """
-        if attrs.get("password") != attrs.get("password2"):
-            raise serializers.ValidationError({"password": "두 비멀번호가 일치하지 않습니다."})
-
-        if not re.match(PASSWORD_REGEX, attrs.get("password")):
-            raise serializers.ValidationError(
-                {
-                    "password": "비밀번호는 8자리~32자리, 한개 이상의 숫자/알파벳/특수문자(@,$,!,%,*,#,?,&)로 이루어져야합니다."
-                }
-            )
+        password_validation(attrs.get("password"), attrs.get("password2"))
         if not re.match(USERNAME_REGEX, attrs.get("username")):
             raise serializers.ValidationError(
                 {
@@ -100,3 +111,84 @@ class MyTokenObtainSerializer(TokenObtainPairSerializer):
         token["email"] = user.email
 
         return token
+
+
+class UserEditSerializer(serializers.ModelSerializer):
+    """
+    유저 정보를 수정하기 위한 시리얼라이저입니다.
+    비밀번호 변경을 원할 수 있기 때문에 passoword2 필드가 추가됩니다.
+    보안을 위해 현재 비밀번호를 입력해 확인하는 과정을 검증에 넣습니다.
+    """
+
+    current_password = serializers.CharField(
+        style={"input_type": "password"}, write_only=True
+    )
+    password2 = serializers.CharField(style={"input_type": "password"}, write_only=True)
+
+    class Meta:
+        model = User
+        exclude = (
+            "email",
+            "username",
+        )
+
+    def update(self, instance, validated_data):
+        """
+        오버라이딩 하였습니다.
+        불필요한 데이터를 제거해 오류를 제거한 뒤 비밀번호 부터 지정 하고 저장을 계속합니다.
+        """
+        validated_data.pop("password2", None)
+        validated_data.pop("current_password", None)
+        if validated_data.get("password"):
+            instance.set_password(validated_data["password"])
+            validated_data.pop("password", None)
+        user = super().update(instance, validated_data)
+        return user
+
+    def validate(self, attrs):
+        """
+        입력된 현재 비밀번호의 유효성부터 검사합니다.
+        """
+        if not self.instance.check_password(attrs.get("current_password")):
+            raise serializers.ValidationError(
+                {"current password": "current password wrong."}
+            )
+        password_validation(attrs.get("password"), attrs.get("password2"))
+        return super().validate(attrs)
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    """
+    프로필을 조회하기 위한 시리얼라이저
+    역참조를 통해 작성한 글들과 이메일을 불러온다.
+    팔로우/팔로워 수를 보여준다.
+    """
+
+    username = serializers.StringRelatedField()
+    email = serializers.SerializerMethodField()
+
+    followers = serializers.SerializerMethodField()
+    following = serializers.SerializerMethodField()
+
+
+    def get_email(self, obj):
+        return obj.username.email
+
+    def get_followers(self, obj):
+        print(obj.username.followers)
+        return obj.username.followers.count()
+
+    def get_following(self, obj):
+        print(obj.username.followers)
+        return obj.username.followings.count()
+
+
+    class Meta:
+        model = Profile
+        fields = "__all__"
+
+
+class ProfileEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ("bio", "image")
