@@ -140,16 +140,6 @@ class LikeView(APIView):
         except Article.DoesNotExist:
             raise NotFound(detail="작성한 글이 없습니다.", code=status.HTTP_404_NOT_FOUND)
 
-    def get(self, request, article_id):
-        """
-        get 방식으로 접근 시 제시한 article_id의 게시글의 좋아요 상태를 보여줍니다.
-        """
-        article = self.get_object(article_id)
-        likes = article.likes.all()
-        users = [like.user for like in likes]
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
     def post(self, request, article_id):
         """
         article_id에 해당하는 게시글을 가져오고, 해당 게시글의 likes 필드에 현재 요청한 유저가 이미 좋아요를 눌렀는지 확인합니다.
