@@ -18,8 +18,32 @@ class Article(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    
+
     likes = models.ManyToManyField(User, related_name="like_articles")
     bookmarks = models.ManyToManyField(User, related_name="bookmarked_articles")
 
+
+      
     def __str__(self):
         return str(self.title)
+    
+class Comment(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="comment_set")
+    content = models.TextField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+ 
+    def __str__(self):
+       return str(self.content)
+#def()파이썬에서 함수 또는 메소드를 정의하기 위해 사용디는 키워드
+#'return self.comment'는 'self.comment' 값을 문자열로 변환하고
+#변환된 문자열을 변환하는 구몬     
+
+    
+
+
+
