@@ -208,6 +208,8 @@ class CommentView(APIView):
     get() 메소드는 특정 게시물에 대한 댓글 데이터를 조회하여 시리얼라이즈한 후, 
     해당 데이터를 JSON 형식으로 응답으로 반환합니다. 
     """
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
     def get(self, request, article_id):
         article = Article.objects.get(id=article_id)
         comments = article.comment_set.all()
