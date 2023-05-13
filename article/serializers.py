@@ -3,6 +3,13 @@ from article.models import Article, Comment
 
 
 class CommentSerializer(serializers.ModelSerializer):
+
+    created_at = serializers.DateTimeField(format="%m월%d일 %H:%M", read_only=True)
+    author = serializers.SerializerMethodField()
+
+    def get_author(self, obj):
+        return obj.author.username
+
     class Meta:
         model = Comment
         fields = "__all__"
