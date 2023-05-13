@@ -12,7 +12,7 @@ urlpatterns = [
     path("verify/", TokenVerifyView.as_view(), name="verify"),
     path("<int:user_id>/", views.ProfileView.as_view(), name="profile"),
     path(
-        "<int:user_id>/article",
+        "<int:user_id>/article/",
         views.ProfileArticleView.as_view(),
         name="profile_aticle",
     ),
