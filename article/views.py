@@ -206,6 +206,8 @@ class CommentView(APIView):
     해당 데이터를 JSON 형식으로 응답으로 반환합니다.
     """
 
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
     def get(self, request, article_id):
         article = Article.objects.get(id=article_id)
         comments = article.comment_set.all()
