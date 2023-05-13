@@ -5,11 +5,11 @@ from rest_framework import generics
 from rest_framework.exceptions import NotFound
 from article.models import Article, Comment
 from article.serializers import (
-  ArticleSerializer,                    
-  ArticleListSerializer, 
-  ArticleCreateSerializer, 
-  CommentCreateSerializer, 
-  CommentSerializer,
+    ArticleSerializer,
+    ArticleListSerializer,
+    ArticleCreateSerializer,
+    CommentCreateSerializer,
+    CommentSerializer,
 )
 from article.permissions import IsOwnerOrReadOnly
 from article.paginations import ArticlePagination
@@ -106,20 +106,16 @@ class ArticleDetailView(APIView):
         return Response({"message": "삭제완료"}, status=status.HTTP_204_NO_CONTENT)
 
 
-class FeedView(APIView):
+class FeedView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
+    paginations_class = ArticlePagination
+    serializer_class = ArticleListSerializer
 
-    def get(self, request):
-        q = Q()
-        if not len(request.user.followings.all()):
-            return Response(
-                {"message": "아직 아무도 구독하지 않았습니다."}, status=status.HTTP_200_OK
-            )
-        for user in request.user.followings.all():
-            q.add(Q(author=user), q.OR)
-        feeds = Article.objects.filter(q)
-        serialized = ArticleSerializer(feeds, many=True)
-        return Response(serialized.data, status=status.HTTP_200_OK)
+    def get_queryset(self):
+        articles = Article.objects.select_related("author").filter(
+            author__in=self.request.user.followings.all()
+        )
+        return articles
 
 
 class LikeView(APIView):
@@ -198,38 +194,43 @@ class BookmarkListView(APIView):
     def get(self, request):
         """ """
         bookmarked_articles = request.user.bookmarked_articles.all()
-        serializer = ArticleSerializer(bookmarked_articles, many=True)
+        serializer = ArticleListSerializer(bookmarked_articles, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-      
+
+
 class CommentView(APIView):
     """
     댓글을 작성하는 공간입니다.
     GET 요청을 처리하여 특정 게시물의 댓글 데이터를 반환하는 기능을 담당합니다.
-    get() 메소드는 특정 게시물에 대한 댓글 데이터를 조회하여 시리얼라이즈한 후, 
-    해당 데이터를 JSON 형식으로 응답으로 반환합니다. 
+    get() 메소드는 특정 게시물에 대한 댓글 데이터를 조회하여 시리얼라이즈한 후,
+    해당 데이터를 JSON 형식으로 응답으로 반환합니다.
     """
+
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     
     def get(self, request, article_id):
         article = Article.objects.get(id=article_id)
         comments = article.comment_set.all()
         serializer = CommentSerializer(comments, many=True)
-        return Response(serializer.data, status = status.HTTP_200_OK)
-    
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def post(self, request, article_id):
-        serializer = CommentCreateSerializer(data=request.data, context={"request": request})
+        serializer = CommentCreateSerializer(
+            data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
-            serializer.save(author = request.user, article_id = article_id)
+            serializer.save(author=request.user, article_id=article_id)
             return Response(
                 {"message": "작성완료"},
                 status=status.HTTP_201_CREATED,
             )
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
 class CommentDetailView(APIView):
     def put(self, request, article_id):
         pass
-    
-    def delete (self, request):
+
+    def delete(self, request):
         pass
