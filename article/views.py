@@ -115,7 +115,7 @@ class FeedView(generics.ListAPIView):
         articles = Article.objects.select_related("author").filter(
             author__in=self.request.user.followings.all()
         )
-        return articles
+        return articles.order_by("-created_at")
 
 
 class LikeView(APIView):
@@ -184,18 +184,18 @@ class BookmarkView(APIView):
             return Response({"message": "북마크가 추가되었습니다."}, status=status.HTTP_200_OK)
 
 
-class BookmarkListView(APIView):
+class BookmarkListView(generics.ListAPIView):
     """
     BookmarkListView에서는 사용자가 북마크한 게시물을 가져와서 제공하는 기능을 수행합니다.
     """
 
     permission_classes = [permissions.IsAuthenticated]
+    paginations_class = ArticlePagination
+    serializer_class = ArticleListSerializer
 
-    def get(self, request):
-        """ """
-        bookmarked_articles = request.user.bookmarked_articles.all()
-        serializer = ArticleListSerializer(bookmarked_articles, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_queryset(self):
+        articles = self.request.user.bookmarked_articles.all()
+        return articles.order_by("-created_at")
 
 
 class CommentView(APIView):
@@ -207,7 +207,7 @@ class CommentView(APIView):
     """
 
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    
+
     def get(self, request, article_id):
         article = Article.objects.get(id=article_id)
         comments = article.comment_set.all()
