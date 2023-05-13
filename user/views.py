@@ -1,5 +1,5 @@
 from rest_framework.views import APIView
-from rest_framework import status, permissions
+from rest_framework import status, permissions, generics
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from user.serializers import (
@@ -14,8 +14,8 @@ from user.permissions import SignOutAuthenticatedOnly, IsMeOrReadOnly
 from rest_framework.generics import get_object_or_404
 from user.models import User, Profile
 
-from article.serializers import ArticleSerializer
-
+from article.serializers import ArticleListSerializer
+from article.paginations import ArticlePagination
 from django.db.models.query_utils import Q
 
 
@@ -106,13 +106,7 @@ class ProfileView(APIView):
             return Response({"message": "탈퇴한 사용자입니다"}, status=status.HTTP_404_NOT_FOUND)
         else:
             serialized = ProfileSerializer(profile)
-        response_data = {
-            "profile_data": serialized.data,
-            "articles": ArticleSerializer(
-                profile.username.article_set.all(), many=True
-            ).data,
-        }
-        return Response(response_data, status=status.HTTP_200_OK)
+        return Response(serialized.data, status=status.HTTP_200_OK)
 
     def put(self, request, user_id):
         """
@@ -125,6 +119,26 @@ class ProfileView(APIView):
         if serialized.is_valid():
             serialized.save()
             return Response({"message": "edit success"}, status=status.HTTP_200_OK)
+
+
+class ProfileArticleView(generics.ListAPIView):
+    paginations_class = ArticlePagination
+    serializer_class = ArticleListSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(
+            get_object_or_404(User, id=kwargs.get("user_id"))
+            .article_set.all()
+            .order_by("-created_at")
+        )
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class FollowView(APIView):
