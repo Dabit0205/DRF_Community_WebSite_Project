@@ -11,5 +11,10 @@ urlpatterns = [
     # {"token":"<토큰문자열>"} -> 유효할시 상태코드 200, 아닐시 401
     path("verify/", TokenVerifyView.as_view(), name="verify"),
     path("<int:user_id>/", views.ProfileView.as_view(), name="profile"),
+    path(
+        "<int:user_id>/article",
+        views.ProfileArticleView.as_view(),
+        name="profile_aticle",
+    ),
     path("<int:user_id>/follow/", views.FollowView.as_view(), name="follow"),
 ]
