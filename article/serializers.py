@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from article.models import Article, Comment
 
+
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
@@ -11,6 +12,7 @@ class CommentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ("content",)
+
 
 class ArticleSerializer(serializers.ModelSerializer):
     """
@@ -36,23 +38,27 @@ class ArticleSerializer(serializers.ModelSerializer):
 class ArticleListSerializer(serializers.ModelSerializer):
     """
     전체 게시글을 확인하기 위해 만들었습니다.
-    제목, 작성자, 좋아요 수, 생성일을 표시합니다 + comment 추가 시 comment 수도 출력예정
+    제목, 작성자, 좋아요 수, 댓글 수, 생성일을 표시합니다.
     DateTimeField를 사용하여 시간 가독성을 좋게했습니다.
     """
 
     created_at = serializers.DateTimeField(format="%m월%d일 %H:%M", read_only=True)
     author = serializers.SerializerMethodField()
+    author_id = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()
-    """
-    이후 count 추가 시 사용됩니다.
-    """
+    comment_count = serializers.SerializerMethodField()
 
-    # comment_count = serializers.SerializerMethodField()
     def get_author(self, obj):
         """
         게시글을 출력할 때 int형태의 author_id가 아닌 회원가입 시 생성한 username 출력
         """
         return obj.author.username
+
+    def get_author_id(self, obj):
+        """
+        게시글에서 author_id를 만들어 user의 id를 가져옵니다.
+        """
+        return obj.author.id
 
     def get_likes_count(self, obj):
         """
@@ -60,11 +66,11 @@ class ArticleListSerializer(serializers.ModelSerializer):
         """
         return obj.likes.count()
 
-    # def get_comment_count(self, obj):
-    """
-    comment 추가 시 댓글의 수를 int형태로 출력합니다.
-    """
-    #     return obj.comment_set.count()
+    def get_comment_count(self, obj):
+        """
+        comment 추가 시 댓글의 수를 int형태로 출력합니다.
+        """
+        return obj.comment_set.count()
 
     class Meta:
         """
@@ -72,7 +78,15 @@ class ArticleListSerializer(serializers.ModelSerializer):
         """
 
         model = Article
-        fields = ("id", "title", "author", "likes_count", "created_at")
+        fields = (
+            "id",
+            "author_id",
+            "title",
+            "author",
+            "likes_count",
+            "comment_count",
+            "created_at",
+        )
 
 
 class ArticleCreateSerializer(serializers.ModelSerializer):
