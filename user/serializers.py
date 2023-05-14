@@ -170,18 +170,14 @@ class ProfileSerializer(serializers.ModelSerializer):
     followers = serializers.SerializerMethodField()
     following = serializers.SerializerMethodField()
 
-
     def get_email(self, obj):
         return obj.username.email
 
     def get_followers(self, obj):
-        print(obj.username.followers)
         return obj.username.followers.count()
 
     def get_following(self, obj):
-        print(obj.username.followers)
         return obj.username.followings.count()
-
 
     class Meta:
         model = Profile
@@ -192,3 +188,11 @@ class ProfileEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ("bio", "image")
+
+    # def update(self, instance, validated_data):
+    #     if validated_data.get("image",None) ==
+    #     pass
+    def update(self, instance, validated_data):
+        if validated_data.get("image", None):
+            instance.image.delete(save=False)
+        return super().update(instance, validated_data)
